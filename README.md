@@ -114,3 +114,7 @@ Create a list of dates for your trip in the format %m-%d. Use the daily_normals 
 Load the list of daily normals into a Pandas DataFrame and set the index equal to the date.
 
 Use Pandas to plot an area plot (stacked=False) for the daily normals.
+
+
+-------------------------------
+Copyright: Trilogy Education Services © 2020. All Rights Reserved.
