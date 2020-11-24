@@ -12,7 +12,7 @@ from flask import Flask, jsonify
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///hawaii.sqlite")
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # Reflect an existing database into a new model
 Base = automap_base()
@@ -29,9 +29,9 @@ Station = Base.classes.station
 
 session = Session(engine)
 
-last_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+end_date = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
-query_date= dt.date(2017,8,23) - dt.timedelta(days=365)
+start_date= dt.date(2017,8,23) - dt.timedelta(days=365)
 
 session.close()
 
@@ -52,9 +52,9 @@ def welcome():
         f"Available Routes:<br/>"
         f"Precipitation: /api/v1.0/precipitation<br/>"
         f"Stations: /api/v1.0/stations<br/>"
-        f"Temperature for one year: /api/v1.0/tobs<br/>"
-        f"Temperature stat from the start date(yyyy-mm-dd): /api/v1.0/yyyy-mm-dd<br/>"
-        f"Temperature stat from start to end dates(yyyy-mm-dd): /api/v1.0/yyyy-mm-dd/yyyy-mm-dd"
+        f"Temperature Observations: /api/v1.0/tobs<br/>"
+        f"Temperature (Start Date Only): /api/v1.0/yyyy-mm-dd<br/>"
+        f"Temperature (Start and End Dates): /api/v1.0/yyyy-mm-dd/yyyy-mm-dd"
     )
 
 #################################################
@@ -103,7 +103,7 @@ def stations():
         station_dict["Lat"] = lat
         station_dict["Lon"] = lon
         station_dict["Elevation"] = el
-        stations.append(station_dict)
+        station_results.append(station_dict)
 
     return jsonify(stations_data)
 
@@ -137,9 +137,6 @@ def start(start):
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    # Convert date to yyyy-mm-dd format
-    start_date= dt.datetime.strptime(start, "%Y-%m-%d")
-
     # Given the start only: calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
 
     start_query = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
@@ -147,7 +144,7 @@ def start(start):
     
     session.close()
     
-    # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+    # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for the given start date.
     tobs_start_data = []
     for min,avg,max in start_query:
         tobs_dict2 = {}
@@ -165,19 +162,15 @@ def start_end(start,stop):
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    # Convert dates to yyyy-mm-dd format
-    start_date= dt.datetime.strptime(start, "%Y-%m-%d")
-    stop_date= dt.datetime.strptime(end, "%Y-%m-%d")
-
     # Given start and end dates: calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
 
     start_stop_query = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
         filter(Measurement.date >= start_date).\
-        filter(Measurement.date <= stop_date)
+        filter(Measurement.date <= end_date)
     
     session.close()
     
-    # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
+    # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for the given start-end range.
     tobs_start__stop_data = []
     for min,avg,max in start_stop_query:
         tobs_dict3 = {}
